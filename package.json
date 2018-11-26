@@ -1,0 +1,75 @@
+{
+  "name": "apollo-cache-updater",
+  "version": "0.0.1",
+  "description": "Helper for updating apollo cache after a mutation",
+  "license": "MIT",
+  "repository": "ecerroni/apollo-cache-updater",
+  "main": "dist/index.js",
+  "author": {
+    "name": "ric0",
+    "email": "e.cerroni@gmail.com",
+    "url": "https://github.com/ecerroni"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "test": "jest",
+    "coverage": "npm test -- --coverage",
+    "postcoverage": "opn coverage/lcov-report/index.html",
+    "lint": "eslint .",
+    "flow": "flow check",
+    "docs": "documentation readme src --section=API",
+    "postdocs": "git add README.md",
+    "clean": "rimraf dist",
+    "flowbuild": "flow-copy-source src dist",
+    "prebuild": "npm run docs && npm run clean && npm run flowbuild",
+    "build": "babel src -d dist",
+    "preversion": "npm run lint && npm test && npm run build",
+    "version": "standard-changelog && git add CHANGELOG.md",
+    "postpublish": "git push origin master --follow-tags"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "keywords": [
+    "apollo-cache-updater"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/cli": "^7.1.2",
+    "@babel/core": "^7.1.2",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/preset-flow": "^7.0.0",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-eslint": "^10.0.1",
+    "babel-jest": "^23.6.0",
+    "documentation": "^9.0.0-alpha.0",
+    "eslint": "^5.7.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-prettier": "^3.1.0",
+    "eslint-plugin-flowtype": "^3.0.0",
+    "eslint-plugin-flowtype-errors": "^3.5.1",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "flow-bin": "^0.83.0",
+    "flow-copy-source": "^2.0.2",
+    "husky": "^1.1.2",
+    "jest-cli": "^23.6.0",
+    "lint-staged": "^7.3.0",
+    "opn-cli": "^3.1.0",
+    "prettier": "^1.14.3",
+    "rimraf": "^2.6.2",
+    "standard-changelog": "^2.0.1"
+  }
+}
