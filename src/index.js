@@ -167,7 +167,7 @@ export default ({
     } else if (m[1].indexOf("{") > -1) {
       queryName = m[1].substr(0, m[1].indexOf("{"));
     } else {
-      queryName = m[1];
+      queryName = m[1]; // eslint-disable-line prefer-destructuring
     }
     return {
       name: queryName,
@@ -211,6 +211,7 @@ export default ({
     !Array.isArray(mutationResult) &&
     mutationResult !== null
   ) {
+    // eslint-disable-next-line no-prototype-builtins
     if (!mutationResult.hasOwnProperty(ID))
       errors.push(`mutationResult is an object but the field ${ID} is missing`);
   } else if (Array.isArray(mutationResult))
@@ -239,7 +240,6 @@ export default ({
             mutationResult,
             variables,
             operation: operationObj.type,
-            insertion: operationObj.row,
             ID,
             element,
             customAdd,

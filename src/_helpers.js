@@ -4,13 +4,12 @@ export const getTypeOfElementItems = ({ element, ID, queryName, errors }) => {
   switch (typeof item) {
     case "string":
       return "string";
-      break;
     case "number":
       return "number";
-      break;
     case "object":
       if (item === null) return undefined;
       if (Array.isArray(item)) return "array";
+      // eslint-disable-next-line no-prototype-builtins
       if (!item.hasOwnProperty(ID)) {
         errors.push(
           `${ID} was not found in the [${queryName}] query results, please add it in your gql query. Apollo cache is now probably inconsistent`
@@ -18,10 +17,8 @@ export const getTypeOfElementItems = ({ element, ID, queryName, errors }) => {
         return undefined;
       }
       return "object";
-      break;
     default:
       return undefined;
-      break;
   }
 };
 

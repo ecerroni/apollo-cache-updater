@@ -25,6 +25,7 @@ export default ({
     });
     if (operation === "REMOVE") {
       if (Array.isArray(data[element.name])) {
+        // eslint-disable-next-line prefer-destructuring
         targetElement = filterElement({
           element: data[element.name],
           mutationResult,
