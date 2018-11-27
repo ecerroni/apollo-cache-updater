@@ -4,46 +4,171 @@
 [![NPM version](https://img.shields.io/npm/v/apollo-cache-updater.svg?style=flat-square)](https://npmjs.org/package/apollo-cache-updater)
 [![Build Status](https://img.shields.io/travis/ecerroni/apollo-cache-updater/master.svg?style=flat-square)](https://travis-ci.org/ecerroni/apollo-cache-updater) [![Coverage Status](https://img.shields.io/codecov/c/github/ecerroni/apollo-cache-updater/master.svg?style=flat-square)](https://codecov.io/gh/ecerroni/apollo-cache-updater/branch/master)
 
-Helper for updating apollo cache after a mutation
+Helper for updating the apollo cache after a mutation
+
+## Why?
+I wanted an updater that steals the magic of refetch queries while keeping the power of apollo local cache, but stripped of the boilerplate usually needed for each mutation update
 
 ## Install
 
     $ npm install --save apollo-cache-updater
 
+    OR 
+
+    $ yarn add apollo-cache-updater
+
 ## Usage
 
-```js
-import myModule from "apollo-cache-updater";
+Example: Add an Article
 
-myModule();
+The following block of code:
+- adds a new article to getArticles queries that contain the `published: true` variable
+- adds `1` to the articleCounts queries that contain the `published: true` variable
+```js
+import ApolloCacheUpdater from "apollo-cache-updater";
+import { getArticles, articlesCount } form '../../apollo/api'; // your apollo queries
+
+createArticleMutation({ // your mutation
+    variables: {
+        ...articleVariables // your mutation vars
+    },
+    update: (proxy, { data: { createArticle = {} } }) => { // your mutation response        
+        const mutationResult = createArticle; // mutation result to pass into the updater
+        const updates = ApolloCacheUpdater({
+            proxy, // apollo proxy
+            queriesToUpdate: [getArticles, articlesCount], // queries you want to automatically update
+            searchVariables: {
+                published: true, // update queries in the cache that have these vars
+            },
+            mutationResult,
+        })
+        if (updates) console.log(`Article added`) // if no errors
+    },
+})
+```
+<hr />
+
+Example: Remove an Article
+
+The following block of code:
+- removes an article with a specific id from the getArticles queries that contain the `published: true` variable
+- subtract `1` from the articleCounts queries that contain the `published: true` variable
+```js
+removeArticleMutation({ // your mutation
+    variables: {
+        id: article.id // your mutation vars
+    },
+    update: (proxy }) => {
+        const updates = ApolloCacheUpdater({
+            proxy, // mandatory
+            queriesToUpdate: [getArticles, articlesCount], // queries you want to automatically update
+            searchVariables: {
+                published: true, // update queries in the cache that have these vars
+            },
+            operation: 'REMOVE',
+            mutationResult: { id: article.id },
+        })
+        if (updates) console.log(`Article removed`) // if no errors
+    },
+})
+```
+<hr />
+
+### Advanced Usage
+
+Example: Move an Article
+
+The following block of code:
+- removes an article from getArticles queries that contain the `published: true` variable and adds it to getArticles queries that contain the `published: false` variables
+- adds `1` to the articleCounts that contain the `published: true` variable and adds it to articleCounts queries that contain the `published: false` variables
+```js
+setArticleStatus({
+    variables: {
+        _id: id,
+        published: false, // set the published status to false
+    },
+    update: (proxy, { data: { setArticleStatus = {} } }) => {    
+        const mutationResult = setArticleStatus;
+        const updates = ApolloCacheUpdater({
+            proxy, // mandatory
+            operation: 'MOVE',
+            queriesToUpdate: [getArticles, articlesCount],
+            searchVariables: {
+                published: true, // find the mutation result article that in the cache is still part of the queries with published = true and remove it
+            },
+            switchVars: {
+                published: false, // add the mutation result article to the queries that in the cache were invoked with published = false, if any
+            },
+            mutationResult,
+        })
+        if (updates) console.log(`Article moved`)
+    },
+})
 ```
 
-## API
+Complete configuration object
+```js
+{
+    proxy, // mandatory
+    searchOperator: 'AND', // AND || OR, default AND. If you need to match all searchVariables or just one at least
+    searchVariables: {
+        ...vars
+    },
+    queriesToUpdate: [...queries],
+    operation: { // String || Object, default String ('ADD', 'REMOVE', 'MOVE', default: 'ADD')
+        type: 'MOVE', // 'ADD', 'REMOVE', 'MOVE', default: ADD
+        row: { // only for ADD, specify how to insert the new item
+            type: 'SORT', // 'TOP', 'BOTTOM', 'SORT', default: TOP
+            field: 'createdAt', // if SORT, this indicates the field to be sorted
+        },
+    },
+    switchVars: {
+        ...otherVars,
+    },
+    mutationResult, // mandatory
+    ID: '_id', // Set the id field returned by your queries, default: id
+}
+````
 
-<!-- Generated by documentation.js. Update this documentation by updating the source code. -->
+#### Override default actions
 
-#### Table of Contents
+For maximum flexibility you can also override the default actions of `ADD` and `REMOVE` operations.
 
--   [index](#index)
-    -   [Parameters](#parameters)
+Add 1 to all queries which data type is a number:
 
-### index
+```js
+    operation: {
+        type: 'ADD',
+        add: ({ query, type, data }) => {
+            if (type === 'number') {
+            return data + 1;
+        }
+    }
+```
 
-This function updates apollo cache based on the configuration object.
+Pass a custom action for the query stories
+```js
+    operation: {
+        type: 'ADD',
+        add: ({ query, type, data }) => {
+            if (query === 'stories') {
+            return [mutationResult, ...data];
+        }
+    }
+```
 
-#### Parameters
+Use the custom add/remove if you want to:
+- override the default behavior for arrays
+- override the default behavior for numbers
+- add a custom function to handle strings (not handled by default)
+- you have specific needs that default actions do not satisfy
 
--   `configuration` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** object
-    -   `configuration.proxy`  
-    -   `configuration.searchVariables`  
-    -   `configuration.searchOperator`   (optional, default `'AND'`)
-    -   `configuration.queriesToUpdate`  
-    -   `configuration.mutationResult`  
-    -   `configuration.operation`   (optional, default `'ADD'`)
-    -   `configuration.ID`   (optional, default `'id'`)
-    -   `configuration.switchVars`  
 
-Returns **[boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** if operation did not throw errors.
+Note:
+- when using custom `add` and/or `remove` sorting is disabled and will be ignored even if you set it. It's up to you to do the sorting in the custom function
+- if you do not return the mutated data (or it is undefined) the custom add/remove function will be skipped and default actions will be used instead
+- if the operation type is MOVE you need to pass both custom  `add` and `remove`. Passing just one of them will not work.
+
 
 ## License
 
