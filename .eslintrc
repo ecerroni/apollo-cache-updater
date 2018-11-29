@@ -5,8 +5,5 @@
     "plugin:prettier/recommended"
   ],
   "plugins": [],
-  "env": {
-    "jest": true
-  },
   "rules": {}
 }
