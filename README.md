@@ -117,8 +117,8 @@ Complete configuration object
     queriesToUpdate: [...queries],
     operation: { // String || Object, default String ('ADD', 'REMOVE', 'MOVE', default: 'ADD')
         type: 'MOVE', // 'ADD', 'REMOVE', 'MOVE', default: ADD
-        row: { // only for ADD, specify how to insert the new item
-            type: 'SORT', // 'TOP', 'BOTTOM', 'SORT', default: TOP
+        row: { // String || Object, default String ('TOP', 'BOTTOM', 'SORT', default: TOP)
+            type: 'SORT', // 'TOP', 'BOTTOM', 'SORT', [SORT is effective only for ADD and MOVE], default: TOP
             field: 'createdAt', // if SORT, this indicates the field to be sorted
         },
     },
