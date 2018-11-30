@@ -2,30 +2,31 @@ import setupClient from "apollo-client-mock";
 import typeDefs from "./_schema";
 import fixtures from "../fixtures";
 
+const filterStories = args => {
+  const { stories } = fixtures;
+  const { where: operators = {} } = args;
+  let result = stories;
+  if (operators) {
+    const { published, flagged } = operators;
+    result = stories.filter(s => {
+      if (published && s.published) {
+        return true;
+      }
+      if (!published && !flagged && !s.published && !s.flagged) {
+        return true;
+      }
+      if (!published && flagged && !s.published && s.flagged) {
+        return true;
+      }
+      return false;
+    });
+  }
+  return result;
+};
 const defaultMocks = {
   Query: () => ({
-    storiesCount: (_, args) => 1, // eslint-disable-line
-    stories: (_, args) => {
-      const { stories } = fixtures;
-      const { where: operators = {} } = args;
-      let result = stories;
-      if (operators) {
-        const { published, flagged } = operators;
-        result = stories.filter(s => {
-          if (published && s.published) {
-            return true;
-          }
-          if (!published && !flagged && !s.published && !s.flagged) {
-            return true;
-          }
-          if (!published && flagged && !s.published && s.flagged) {
-            return true;
-          }
-          return false;
-        });
-      }
-      return result;
-    }
+    storiesCount: (_, args) => filterStories(args).length,
+    stories: (_, args) => filterStories(args)
   }),
   /* eslint-disable no-underscore-dangle */
   Mutation: () => ({

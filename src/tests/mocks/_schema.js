@@ -29,6 +29,6 @@ export default `
   }
 
   type Mutation {
-      setStoryStatus(input: inputStoryStatus!): Story
+      setStoryStatus(_id: Int! published: Boolean! flagged: Boolean!): Story
   }
 `;
