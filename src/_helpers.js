@@ -9,8 +9,7 @@ export const getTypeOfElementItems = ({ element, ID, queryName, errors }) => {
     case "object":
       if (item === null) return undefined;
       if (Array.isArray(item)) return "array";
-      // eslint-disable-next-line no-prototype-builtins
-      if (!item.hasOwnProperty(ID)) {
+      if (!Object.prototype.hasOwnProperty.call(item, ID)) {
         errors.push(
           `${ID} was not found in the [${queryName}] query results, please add it in your gql query. Apollo cache is now probably inconsistent`
         );

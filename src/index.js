@@ -202,7 +202,6 @@ export default ({
         return [...arr];
       }, [])
   }));
-
   if (!mutationResult || mutationResult === null)
     errors.push("mutationResult is required");
   if (
@@ -211,13 +210,13 @@ export default ({
     !Array.isArray(mutationResult) &&
     mutationResult !== null
   ) {
-    // eslint-disable-next-line no-prototype-builtins
-    if (!mutationResult.hasOwnProperty(ID))
+    if (!Object.prototype.hasOwnProperty.call(mutationResult, ID))
       errors.push(`mutationResult is an object but the field ${ID} is missing`);
   } else if (Array.isArray(mutationResult))
     errors.push("mutationResult cannot be an array");
 
   const invalid =
+    switchVars &&
     Object.entries(switchVars).filter(
       entry =>
         typeof entry[1] !== "string" &&
