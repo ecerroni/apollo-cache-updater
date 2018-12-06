@@ -1,13 +1,7 @@
 /* eslint-disable no-unused-vars, no-undef */
 
 import React from "react";
-import {
-  render,
-  cleanup,
-  wait,
-  fireEvent,
-  waitForElement
-} from "react-testing-library";
+import { render, cleanup, wait } from "react-testing-library";
 
 import { ApolloProvider } from "react-apollo";
 import createClient from "./mocks";
@@ -23,20 +17,14 @@ const initialUnpublishedStoriesCount = stories.filter(
 
 const initialArchivedStoriesCount = stories.filter(s => s.flagged).length;
 
-console.log(
-  `[publishedStories: ${initialPublishedStoriesCount}] | [unpublishedStories: ${initialUnpublishedStoriesCount}] | [archivedStories: ${initialArchivedStoriesCount}]`
-);
-const spyError = jest.spyOn(global.console, "error");
-const spyWarn = jest.spyOn(global.console, "warn");
-beforeEach(() => {
-  spyError.mockReset();
-  spyWarn.mockReset();
-});
+// console.log(
+//   `[publishedStories: ${initialPublishedStoriesCount}] | [unpublishedStories: ${initialUnpublishedStoriesCount}] | [archivedStories: ${initialArchivedStoriesCount}]`
+// );
 
 afterEach(cleanup);
 
 test("should mount without blowing up", () => {
-  const { getByText, container } = render(
+  render(
     <ApolloProvider client={createClient()}>
       <StoriesList />
     </ApolloProvider>
@@ -89,22 +77,4 @@ test("should list all archived stories", async () => {
     '[data-test="archived-stories"]'
   ).length;
   expect(archivedStories).toBe(initialArchivedStoriesCount);
-});
-
-test("should throw errors", async () => {
-  const { getByText, container, getByTestId } = render(
-    <ApolloProvider client={createClient()}>
-      <StoriesList />
-    </ApolloProvider>
-  );
-  await wait();
-
-  const archivedStories = container.querySelectorAll(
-    "[data-test]",
-    "archived-stories"
-  ).length;
-  fireEvent.click(getByText("Missing Switch"));
-  const completed = await waitForElement(() => getByTestId("completed"));
-  expect(completed.innerHTML).toBe("Mutation: completed");
-  expect(spyError).toHaveBeenCalled();
 });

@@ -1,3 +1,5 @@
+import { ERRORS } from "./messages";
+
 export const getTypeOfElementItems = ({ element, ID, queryName, errors }) => {
   if (element.length < 1) return undefined;
   const item = element[0];
@@ -11,7 +13,9 @@ export const getTypeOfElementItems = ({ element, ID, queryName, errors }) => {
       if (Array.isArray(item)) return "array";
       if (!Object.prototype.hasOwnProperty.call(item, ID)) {
         errors.push(
-          `${ID} was not found in the [${queryName}] query results, please add it in your gql query. Apollo cache is now probably inconsistent`
+          `${ID} was not found in the [${queryName}] query results, please add it in your gql query. Apollo cache is now probably inconsistent | ${
+            ERRORS.QUERY.MISSING_ID
+          }`
         );
         return undefined;
       }

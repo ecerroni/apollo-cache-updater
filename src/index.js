@@ -1,4 +1,5 @@
 import handleElement from "./handle-element";
+import { ERRORS, WARNINGS } from "./messages";
 
 const allowedOperations = {
   type: ["ADD", "REMOVE", "MOVE"],
@@ -31,12 +32,16 @@ export default ({
     !["AND", "OR"].includes(searchOperator)
   ) {
     console.warn(
-      "ApolloCacheUpdater Warning: [AND | OR] are the only allowed search operators. Using AND as the default operator"
+      `ApolloCacheUpdater Warning: [AND | OR] are the only allowed search operators. Using AND as the default operator | ${
+        WARNINGS.SEARCH_OPERATOR.NOT_VALID
+      }`
     );
     operator = "AND";
   } else if (!!searchOperator && typeof searchOperator !== "string") {
     console.warn(
-      "ApolloCacheUpdater Warning: searchOperator should be a string. Using AND as the default operator"
+      `ApolloCacheUpdater Warning: searchOperator should be a string. Using AND as the default operator | ${
+        WARNINGS.SEARCH_OPERATOR.MUST_BE_STRING
+      }`
     );
     operator = "AND";
   }
@@ -90,7 +95,7 @@ export default ({
       errors.push(
         `${operation.row} is not valid. Use one of ${allowedOperations.row.join(
           ", "
-        )}`
+        )} | ${ERRORS.OPERATION.INVALID_ROW}`
       );
 
     if (
@@ -98,7 +103,9 @@ export default ({
       Object.prototype.toString.call(operation.add) !== "[object Function]"
     ) {
       errors.push(
-        'You included a custom "add" field, but it is not a function. Only functions should be used in the "add" field'
+        `You included a custom "add" field, but it is not a function. Only functions should be used in the "add" field | ${
+          ERRORS.OPERATION.CUSTOM_ADD_NO_FUNCTION
+        }`
       );
     }
 
@@ -107,7 +114,9 @@ export default ({
       Object.prototype.toString.call(operation.remove) !== "[object Function]"
     ) {
       errors.push(
-        'You included a custom "remove" field, but it is not a function. Only functions should be used in the "remove" field'
+        `You included a custom "remove" field, but it is not a function. Only functions should be used in the "remove" field | ${
+          ERRORS.OPERATION.CUSTOM_REMOVE_NO_FUNCTION
+        }`
       );
     }
 
@@ -120,14 +129,17 @@ export default ({
     errors.push(
       `${operation} is not valid. Use one of ${allowedOperations.type.join(
         ", "
-      )}`
+      )} | ${ERRORS.OPERATION.NOT_VALID}`
     );
   const customAdd = operationObj.add;
   const customRemove = operationObj.remove;
 
   let searchKeys = [];
 
-  if (!searchVariables) errors.push("searchVariables are required");
+  if (!searchVariables)
+    errors.push(
+      `searchVariables are required | ${ERRORS.SEARCH_VARIABLES.MANDATORY}`
+    );
   if (
     !!searchVariables &&
     typeof searchVariables === "object" &&
@@ -143,12 +155,17 @@ export default ({
       ).length > 0;
     if (invalid)
       errors.push(
-        "searchVariables cannot have nested objects, or have null values or be a function, Use only number, string and boolean primitives"
+        `searchVariables cannot have nested objects, or have null values or be a function, Use only number, string and boolean primitives | ${
+          ERRORS.SEARCH_VARIABLES.NO_NESTING
+        }`
       );
     searchKeys = Object.entries(searchVariables).map(entry =>
       JSON.stringify({ [entry[0]]: entry[1] })
     );
-  } else errors.push("Invalid object as searchVariables");
+  } else
+    errors.push(
+      `Invalid object as searchVariables | ${ERRORS.SEARCH_VARIABLES.INVALID}`
+    );
 
   const queries = proxy.data.data.ROOT_QUERY;
   const apolloQueries = queriesToUpdate.map(query => {
@@ -203,7 +220,9 @@ export default ({
       }, [])
   }));
   if (!mutationResult || mutationResult === null)
-    errors.push("mutationResult is required");
+    errors.push(
+      `mutationResult is required | ${ERRORS.MUTATION_RESULT.MANDATORY}`
+    );
   if (
     mutationResult &&
     typeof mutationResult === "object" &&
@@ -211,9 +230,15 @@ export default ({
     mutationResult !== null
   ) {
     if (!Object.prototype.hasOwnProperty.call(mutationResult, ID))
-      errors.push(`mutationResult is an object but the field ${ID} is missing`);
+      errors.push(
+        `mutationResult is an object but the field ${ID} is missing | ${
+          ERRORS.MUTATION_RESULT.MISSING_ID
+        } `
+      );
   } else if (Array.isArray(mutationResult))
-    errors.push("mutationResult cannot be an array");
+    errors.push(
+      `mutationResult cannot be an array | ${ERRORS.MUTATION_RESULT.NO_ARRAY}`
+    );
 
   const invalid =
     switchVars &&
@@ -225,7 +250,9 @@ export default ({
     ).length > 0;
   if (invalid)
     errors.push(
-      "switchVariables cannot have nested objects, or have null values or be a function, Use only number, string and boolean primitives"
+      `switchVariables cannot have nested objects, or have null values or be a function, Use only number, string and boolean primitives | ${
+        ERRORS.SWITCH_VARIABLES.NO_NESTING
+      } `
     );
 
   if (errors.length === 0 && !!mutationResult) {
@@ -303,7 +330,9 @@ export default ({
         }
         if (operationObj.type === "MOVE" && !switchVars)
           console.warn(
-            "ApolloCacheUpdater Warning: MOVE operation requires switchVars but none was found. An empty object was used instead"
+            `ApolloCacheUpdater Warning: MOVE operation requires switchVars but none was found. An empty object was used instead | ${
+              WARNINGS.SEARCH_OPERATOR
+            }`
           );
       });
     });

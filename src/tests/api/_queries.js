@@ -11,6 +11,16 @@ export const stories = gql`
   }
 `;
 
+export const storiesNoId = gql`
+  query stories($sort: String, $limit: Int, $start: Int, $where: JSON) {
+    stories(sort: $sort, limit: $limit, start: $start, where: $where) {
+      title
+      published
+      flagged
+    }
+  }
+`;
+
 export const storiesCount = gql`
   query storiesCount($where: JSON) {
     storiesCount(where: $where)
