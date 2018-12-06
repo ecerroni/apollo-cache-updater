@@ -29,6 +29,13 @@ Updating the local cache becomes exponentially complicated when it needs to:
 
 This solution tries to decouple the view from the caching layer by configuring the mutation's result caching behavior through the Apollo's `update` variable.
 
+## Demo
+
+<p align="center">
+  <img src="./assets/images/apc_demo.gif">
+</p>
+
+
 ## Install
 
     $ npm install --save apollo-cache-updater
