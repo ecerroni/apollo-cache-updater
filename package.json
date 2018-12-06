@@ -1,6 +1,6 @@
 {
   "name": "apollo-cache-updater",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Helper for updating apollo cache after a mutation",
   "license": "MIT",
   "repository": "ecerroni/apollo-cache-updater",
@@ -22,7 +22,7 @@
     "lint-fix": "eslint --fix .",
     "clean": "rimraf dist",
     "prebuild": "npm run clean",
-    "build": "babel src -d dist",
+    "build": "babel src --ignore src/tests -d dist",
     "preversion": "npm run lint && npm test && npm run build",
     "version": "standard-changelog && git add CHANGELOG.md",
     "postpublish": "git push apollo-cache-updater master --follow-tags"
