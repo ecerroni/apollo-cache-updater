@@ -37,10 +37,8 @@ export default ({
   }
 
   const rendered =
-    stories && stories.length > 0
-      ? stories.map(s => (
-          // eslint-disable-next-line
-          <div key={s._id} data-test={dataTest}>
+    stories && stories.length > 0 // eslint-disable-next-line
+      ? stories.map(s => (<div key={s._id} data-test={dataTest}>
             <span>
               <strong data-test="title">{s.title}</strong>
             </span>
