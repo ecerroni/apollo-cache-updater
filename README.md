@@ -4,10 +4,30 @@
 [![NPM version](https://img.shields.io/npm/v/apollo-cache-updater.svg?style=flat-square)](https://npmjs.org/package/apollo-cache-updater)
 [![Build Status](https://img.shields.io/travis/ecerroni/apollo-cache-updater/master.svg?style=flat-square)](https://travis-ci.org/ecerroni/apollo-cache-updater) [![Coverage Status](https://img.shields.io/codecov/c/github/ecerroni/apollo-cache-updater/master.svg?style=flat-square)](https://codecov.io/gh/ecerroni/apollo-cache-updater/branch/master)
 
+
+
+<p align="center">
+  <img width="200" height="200" src="./assets/images/apc_logo.png">
+</p>
+
+
+<center>
 Helper for updating the apollo cache after a mutation
+</center>
+
 
 ## Why?
-I wanted an updater that steals the magic of refetch queries while keeping the power of apollo local cache, but stripped of the boilerplate usually needed for each mutation update
+I wanted an updater that steals the magic of refetch queries while keeping the power of apollo local cache, but stripped of the boilerplate usually needed for each mutation update.
+
+Updating the local cache becomes exponentially complicated when it needs to:
+- include multiple variables
+- include multiple queries
+- know which of our target queries has been already fired before our speficific mutation happend
+- cover scenarios** where apollo's in-place update may not be sufficient
+
+** Add/remove to list, move from one list to another, update filtered list, etc.
+
+This solution tries to decouple the view from the caching layer by configuring the mutation's result caching behavior through the Apollo's `update` variable.
 
 ## Install
 
@@ -112,7 +132,7 @@ Complete configuration object
     proxy, // mandatory
     searchOperator: 'AND', // AND || OR, default AND. If you need to match all searchVariables or just one at least
     searchVariables: {
-        ...vars
+        ...vars // searchVariables cannot be nested objects
     },
     queriesToUpdate: [...queries],
     operation: { // String || Object, default String ('ADD', 'REMOVE', 'MOVE', default: 'ADD')
@@ -123,7 +143,7 @@ Complete configuration object
         },
     },
     switchVars: {
-        ...otherVars,
+        ...otherVars, // switchVars cannot be nested objects
     },
     mutationResult, // mandatory
     ID: '_id', // Set the id field returned by your queries, default: id
@@ -146,12 +166,12 @@ Add 1 to all queries which data type is a number:
     }
 ```
 
-Pass a custom action for the query stories
+Pass a custom action for the query `articles`
 ```js
     operation: {
         type: 'ADD',
         add: ({ query, type, data }) => {
-            if (query === 'stories') {
+            if (query === 'articles') {
             return [mutationResult, ...data];
         }
     }
@@ -161,12 +181,13 @@ Use the custom add/remove if you want to:
 - override the default behavior for arrays
 - override the default behavior for numbers
 - add a custom function to handle strings (not handled by default)
+- affect other variables depending on the query data
 - you have specific needs that default actions do not satisfy
 
 
 Note:
 - when using custom `add` and/or `remove` sorting is disabled and will be ignored even if you set it. It's up to you to do the sorting in the custom function
-- if you do not return the mutated data (or it is undefined) the custom add/remove function will be skipped and default actions will be used instead
+- if you do not return the mutated data (or it is undefined) the custom add/remove function's result will be skipped and default actions'result will be used instead. However the logic inside the custom function will always be executed.
 - if the operation type is MOVE you need to pass both custom  `add` and `remove`. Passing just one of them will not work.
 
 
