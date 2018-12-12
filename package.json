@@ -11,8 +11,7 @@
     "url": "https://github.com/ecerroni"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "scripts": {
     "test": "react-scripts test --env=jsdom",
