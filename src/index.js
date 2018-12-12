@@ -1,11 +1,12 @@
-import handleElement from "./handle-element";
-import { ERRORS, WARNINGS } from "./messages";
+import handleElement from './handle-element';
+import { ERRORS, WARNINGS } from './messages';
 
 const allowedOperations = {
-  type: ["ADD", "REMOVE", "MOVE"],
-  row: ["TOP", "BOTTOM", "SORT"],
+  type: ['ADD', 'REMOVE', 'MOVE'],
+  row: ['TOP', 'BOTTOM', 'SORT'],
   add: undefined,
-  remove: undefined
+  remove: undefined,
+  searchOperator: ['AND', 'AND_EDGE', 'OR', 'OR_EDGE'],
 };
 
 /**
@@ -16,91 +17,90 @@ const allowedOperations = {
 export default ({
   proxy,
   searchVariables,
-  searchOperator = "AND",
+  searchOperator = 'AND',
   queriesToUpdate,
   mutationResult,
-  operation = "ADD",
-  ID = "id",
-  switchVars
+  operation = 'ADD',
+  ID = 'id',
+  switchVars,
 }) => {
   const errors = [];
   let operator = searchOperator;
-
-  if (
-    !!searchOperator &&
-    typeof searchOperator === "string" &&
-    !["AND", "OR"].includes(searchOperator)
-  ) {
-    console.warn(
-      `ApolloCacheUpdater Warning: [AND | OR] are the only allowed search operators. Using AND as the default operator | ${
-        WARNINGS.SEARCH_OPERATOR.NOT_VALID
-      }`
-    );
-    operator = "AND";
-  } else if (!!searchOperator && typeof searchOperator !== "string") {
+  if (!!searchOperator && typeof searchOperator === 'string') {
+    if (!allowedOperations.searchOperator.includes(searchOperator)) {
+      console.warn(
+        `ApolloCacheUpdater Warning: [${allowedOperations.searchOperator.join(
+          ' | '
+        )}] are the only allowed search operators. Using AND as the default operator | ${
+          WARNINGS.SEARCH_OPERATOR.NOT_VALID
+        }`
+      );
+      operator = 'AND';
+    }
+  } else if (!!searchOperator && typeof searchOperator !== 'string') {
     console.warn(
       `ApolloCacheUpdater Warning: searchOperator should be a string. Using AND as the default operator | ${
         WARNINGS.SEARCH_OPERATOR.MUST_BE_STRING
       }`
     );
-    operator = "AND";
+    operator = 'AND';
   }
 
   let operationObj = {
-    type: "ADD",
+    type: 'ADD',
     row: {
-      type: "TOP",
+      type: 'TOP',
       field: undefined,
-      ordering: undefined
+      ordering: undefined,
     },
     add: undefined,
-    remove: undefined
+    remove: undefined,
   };
   if (
-    typeof operation === "string" &&
+    typeof operation === 'string' &&
     allowedOperations.type.includes(operation)
   ) {
     operationObj.type = operation;
   } else if (
-    typeof operation === "object" &&
+    typeof operation === 'object' &&
     !Array.isArray(operation) &&
     operation !== null
   ) {
     let rowObj = {};
     if (
       operation.row &&
-      typeof operation.row === "string" &&
+      typeof operation.row === 'string' &&
       allowedOperations.row.includes(operation.row)
     ) {
       rowObj = {
         row: {
           type: operation.row,
           field: undefined,
-          ordering: undefined
-        }
+          ordering: undefined,
+        },
       };
     } else if (
       operation.row &&
-      typeof operation.row === "object" &&
+      typeof operation.row === 'object' &&
       !Array.isArray(operation.row) &&
       operation.row !== null
     ) {
       rowObj = {
         row: {
           ...rowObj,
-          ...operation.row
-        }
+          ...operation.row,
+        },
       };
-    } else if (operation.row && typeof operation.row === "string")
+    } else if (operation.row && typeof operation.row === 'string')
       errors.push(
         `${operation.row} is not valid. Use one of ${allowedOperations.row.join(
-          ", "
+          ', '
         )} | ${ERRORS.OPERATION.INVALID_ROW}`
       );
 
     if (
       !!operation.add &&
-      Object.prototype.toString.call(operation.add) !== "[object Function]"
+      Object.prototype.toString.call(operation.add) !== '[object Function]'
     ) {
       errors.push(
         `You included a custom "add" field, but it is not a function. Only functions should be used in the "add" field | ${
@@ -111,7 +111,7 @@ export default ({
 
     if (
       !!operation.remove &&
-      Object.prototype.toString.call(operation.remove) !== "[object Function]"
+      Object.prototype.toString.call(operation.remove) !== '[object Function]'
     ) {
       errors.push(
         `You included a custom "remove" field, but it is not a function. Only functions should be used in the "remove" field | ${
@@ -123,16 +123,23 @@ export default ({
     operationObj = {
       ...operationObj,
       ...operation,
-      ...rowObj
+      ...rowObj,
     };
-  } else if (typeof operation === "string")
+  } else if (typeof operation === 'string')
     errors.push(
       `${operation} is not valid. Use one of ${allowedOperations.type.join(
-        ", "
+        ', '
       )} | ${ERRORS.OPERATION.NOT_VALID}`
     );
   const customAdd = operationObj.add;
   const customRemove = operationObj.remove;
+
+  if (operationObj.type === 'MOVE' && !switchVars)
+    errors.push(
+      `ApolloCacheUpdater Warning: MOVE operation requires switchVars but none was found. An empty object was used instead | ${
+        ERRORS.SWITCH_VARIABLES.MANDATORY_FOR_MOVE
+      }`
+    );
 
   let searchKeys = [];
 
@@ -142,16 +149,16 @@ export default ({
     );
   if (
     !!searchVariables &&
-    typeof searchVariables === "object" &&
+    typeof searchVariables === 'object' &&
     !Array.isArray(searchVariables) &&
     searchVariables !== null
   ) {
     const invalid =
       Object.entries(searchVariables).filter(
         entry =>
-          typeof entry[1] !== "string" &&
-          typeof entry[1] !== "number" &&
-          typeof entry[1] !== "boolean"
+          typeof entry[1] !== 'string' &&
+          typeof entry[1] !== 'number' &&
+          typeof entry[1] !== 'boolean'
       ).length > 0;
     if (invalid)
       errors.push(
@@ -172,23 +179,23 @@ export default ({
     // extract the name of the query
     let queryName;
     const bodyString = JSON.stringify(query.loc.source.body)
-      .replace(/\\n/g, "")
-      .replace(/ /g, "");
+      .replace(/\\n/g, '')
+      .replace(/ /g, '');
 
     const re = /{(.*)}/;
     const m = bodyString.match(re);
-    if (m[1].indexOf("(") > -1) {
-      queryName = m[1].substr(0, m[1].indexOf("("));
-    } else if (m[1].indexOf("@") > -1) {
-      queryName = m[1].substr(0, m[1].indexOf("@"));
-    } else if (m[1].indexOf("{") > -1) {
-      queryName = m[1].substr(0, m[1].indexOf("{"));
+    if (m[1].indexOf('(') > -1) {
+      queryName = m[1].substr(0, m[1].indexOf('('));
+    } else if (m[1].indexOf('@') > -1) {
+      queryName = m[1].substr(0, m[1].indexOf('@'));
+    } else if (m[1].indexOf('{') > -1) {
+      queryName = m[1].substr(0, m[1].indexOf('{'));
     } else {
       queryName = m[1]; // eslint-disable-line prefer-destructuring
     }
     return {
       name: queryName,
-      query
+      query,
     };
   });
 
@@ -201,23 +208,33 @@ export default ({
       )
       .reduce((arr, q) => {
         const k = q[0];
-        const match =
-          operator === "AND"
-            ? searchKeys.filter(searchKey =>
-                k.includes(searchKey.substr(1, searchKey.length - 2))
-              ).length === searchKeys.length
-            : searchKeys.filter(searchKey =>
-                k.includes(searchKey.substr(1, searchKey.length - 2))
-              ).length > 0;
+        let match = operator.includes('AND')
+          ? searchKeys.filter(searchKey =>
+              k.includes(searchKey.substr(1, searchKey.length - 2))
+            ).length === searchKeys.length
+          : searchKeys.filter(searchKey =>
+              k.includes(searchKey.substr(1, searchKey.length - 2))
+            ).length > 0;
+        if (operator.includes('EDGE')) {
+          // allowEmptyVars
+          const re = /{(.*)}/;
+          const m = k.match(re);
+          if (m) {
+            const vars = JSON.parse(m[0]);
+            // console.log(k, Object.entries(vars).filter(v => !!v[1]).length === 0)
+            if (Object.entries(vars).filter(v => !!v[1]).length === 0)
+              match = true; // object accepts vars but either an empty varibles object or not variables at all were passed
+          }
+        }
         if (match) {
           const re = /{(.*)}/;
           const m = k.match(re);
           if (m != null)
-            return [...arr, JSON.parse(`{${m[0].replace(re, "$1")}}`)];
+            return [...arr, JSON.parse(`{${m[0].replace(re, '$1')}}`)];
           return [...arr];
         }
         return [...arr];
-      }, [])
+      }, []),
   }));
   if (!mutationResult || mutationResult === null)
     errors.push(
@@ -225,7 +242,7 @@ export default ({
     );
   if (
     mutationResult &&
-    typeof mutationResult === "object" &&
+    typeof mutationResult === 'object' &&
     !Array.isArray(mutationResult) &&
     mutationResult !== null
   ) {
@@ -244,9 +261,9 @@ export default ({
     switchVars &&
     Object.entries(switchVars).filter(
       entry =>
-        typeof entry[1] !== "string" &&
-        typeof entry[1] !== "number" &&
-        typeof entry[1] !== "boolean"
+        typeof entry[1] !== 'string' &&
+        typeof entry[1] !== 'number' &&
+        typeof entry[1] !== 'boolean'
     ).length > 0;
   if (invalid)
     errors.push(
@@ -259,7 +276,7 @@ export default ({
     targetQueries.forEach(element => {
       element.entries.forEach(variables => {
         const { query } = element;
-        if (operationObj.type === "REMOVE" || operationObj.type === "ADD") {
+        if (operationObj.type === 'REMOVE' || operationObj.type === 'ADD') {
           handleElement({
             proxy,
             query,
@@ -273,30 +290,30 @@ export default ({
             insertion: operationObj.row.type,
             field: operationObj.row.field,
             ordering: operationObj.row.ordering,
-            errors
+            errors,
           });
         }
-        if (operationObj.type === "MOVE") {
+        if (operationObj.type === 'MOVE') {
           const elementToMove = handleElement({
             proxy,
             query,
             mutationResult,
             variables,
-            operation: "REMOVE",
+            operation: 'REMOVE',
             ID,
             element,
             customRemove,
-            errors
+            errors,
           });
           // add element only if target queries for the switch are in ROOT_QUERY
-          const safeSwitchVars = switchVars || {};
+          const safeSwitchVars = switchVars;
           searchKeys = Object.entries(safeSwitchVars).map(entry =>
             JSON.stringify({ [entry[0]]: entry[1] })
           );
           const matches = Object.entries(queries).filter(entry => {
             const k = entry[0];
             const match =
-              operator === "AND"
+              operator === 'AND'
                 ? searchKeys.filter(searchKey =>
                     k.includes(searchKey.substr(1, searchKey.length - 2))
                   ).length === searchKeys.length
@@ -315,25 +332,19 @@ export default ({
               query,
               mutationResult: elementToMove,
               variables: {
-                ...queryVars
+                ...queryVars,
               },
-              operation: "ADD",
+              operation: 'ADD',
               insertion: operationObj.row.type,
               field: operationObj.row.field,
               ordering: operationObj.row.ordering,
               ID,
               element,
               customAdd,
-              errors
+              errors,
             });
           }
         }
-        if (operationObj.type === "MOVE" && !switchVars)
-          console.warn(
-            `ApolloCacheUpdater Warning: MOVE operation requires switchVars but none was found. An empty object was used instead | ${
-              WARNINGS.SEARCH_OPERATOR
-            }`
-          );
       });
     });
   }

@@ -4,12 +4,19 @@
       "@babel/preset-env",
       {
         "targets": {
-          "node": 6
+          "node": 9
         }
       }
     ]
   ],
   "plugins": [
     "@babel/plugin-proposal-class-properties"
+  ],
+  "ignore": [
+    "**/__tests__",
+    "**/__fixtures__",
+    "**/__api__",
+    "**/__components__",
+    "**/__mocks__"
   ]
 }

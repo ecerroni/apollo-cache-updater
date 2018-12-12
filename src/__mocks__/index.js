@@ -1,10 +1,10 @@
-import setupClient from "apollo-client-mock";
-import typeDefs from "./_schema";
-import fixtures from "../fixtures";
+import setupClient from 'apollo-client-mock';
+import typeDefs from './_schema';
+import fixtures from '../__fixtures__';
 
 const filterStories = args => {
   const { stories } = fixtures;
-  const { where: operators = {} } = args;
+  const { where: operators = null } = args;
   let result = stories;
   if (operators) {
     const { published, flagged } = operators;
@@ -26,7 +26,7 @@ const filterStories = args => {
 const defaultMocks = {
   Query: () => ({
     storiesCount: (_, args) => filterStories(args).length,
-    stories: (_, args) => filterStories(args)
+    stories: (_, args) => filterStories(args),
   }),
   /* eslint-disable no-underscore-dangle */
   Mutation: () => ({
@@ -42,10 +42,17 @@ const defaultMocks = {
       return {
         ...story,
         published,
-        flagged
+        flagged,
       };
-    }
-  })
+    },
+    addStory: (_, { _id, title, published, flagged }) => ({
+      _id,
+      title,
+      published,
+      flagged,
+    }),
+    removeStory: (_, { _id }) => `${_id} removed!`,
+  }),
 };
 
 const createClient = setupClient(defaultMocks, typeDefs);

@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
 export const StoryData = {
   fragments: {
@@ -9,6 +9,6 @@ export const StoryData = {
         published
         flagged
       }
-    `
-  }
+    `,
+  },
 };
