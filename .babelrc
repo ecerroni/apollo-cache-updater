@@ -1,22 +1,36 @@
 {
-  "presets": [
-    [
-      "@babel/preset-env",
-      {
-        "targets": {
-          "node": 9
-        }
+  "env": {
+    "development": {
+      "presets": [
+        ["@babel/preset-env", {
+          "targets": {
+            "node": "6.10"
+          }}]
+        ],
+        "plugins": [
+          "@babel/plugin-proposal-class-properties"
+        ]
+      },
+      "browser": {
+        "presets": [
+            ["babel-preset-env", {
+                "targets": {
+                    "browsers": "last 2 versions, ie 10-11"
+                },
+                "modules": false
+            }]
+        ],
+        "plugins": [
+          "@babel/plugin-proposal-class-properties"
+        ]
       }
-    ]
-  ],
-  "plugins": [
-    "@babel/plugin-proposal-class-properties"
-  ],
+  },
   "ignore": [
     "**/__tests__",
     "**/__fixtures__",
     "**/__api__",
     "**/__components__",
     "**/__mocks__"
-  ]
+  ],
+  "sourceMaps": true
 }
