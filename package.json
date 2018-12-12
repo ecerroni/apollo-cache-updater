@@ -12,7 +12,8 @@
     "url": "https://github.com/ecerroni"
   },
   "files": [
-    "dist"
+    "dist",
+    "lib"
   ],
   "scripts": {
     "test": "react-scripts test --env=jsdom",
@@ -21,8 +22,7 @@
     "postcoverage": "opn coverage/lcov-report/index.html",
     "lint": "eslint .",
     "lint-fix": "eslint --fix .",
-    "clean": "rimraf dist",
-    "build-browser": "babel ./src --out-dir ./lib --source-maps",
+    "clean": "rimraf dist","build-browser": "babel ./src --out-dir ./lib --source-maps",
     "build-node": "babel ./src --out-dir ./dist --source-maps",
     "prebuild": "npm run clean",
     "build": "npm run build-node && npm run build-browser",
