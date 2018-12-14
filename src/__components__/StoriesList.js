@@ -44,7 +44,7 @@ const recomposeStates = compose(withState('mutation', 'setMutation', ''));
 let queriesToUpdate = [storiesQuery, storiesCountQuery];
 
 const recomposeHandlers = withHandlers({
-  add: ({ addStory, setMutation, noParams, noParamsEdge }) => () => {
+  add: ({ addStory, setMutation, noParams, noParamsEdge, customAdd }) => () => {
     if (noParams) {
       queriesToUpdate = [
         storiesQuery,
@@ -69,6 +69,12 @@ const recomposeHandlers = withHandlers({
           mutationResult,
           ID: '_id',
         };
+        if (customAdd) {
+          defaultUpdaterObject.operation = {
+            type: 'ADD',
+            add: customAdd,
+          };
+        }
         ApolloCacheUpdater({
           ...defaultUpdaterObject,
         });
@@ -76,7 +82,13 @@ const recomposeHandlers = withHandlers({
       },
     });
   },
-  remove: ({ removeStory, setMutation, noParams, noParamsEdge }) => () => {
+  remove: ({
+    removeStory,
+    setMutation,
+    noParams,
+    noParamsEdge,
+    customRemove,
+  }) => () => {
     if (noParams) {
       queriesToUpdate = [
         storiesQuery,
@@ -102,6 +114,13 @@ const recomposeHandlers = withHandlers({
           mutationResult,
           ID: '_id',
         };
+
+        if (customRemove) {
+          defaultUpdaterObject.operation = {
+            type: 'REMOVE',
+            remove: customRemove,
+          };
+        }
         ApolloCacheUpdater({
           ...defaultUpdaterObject,
         });
