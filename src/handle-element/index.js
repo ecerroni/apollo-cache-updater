@@ -39,6 +39,7 @@ export default ({
             query: element.name,
             type: 'array',
             data: data[element.name],
+            variables,
           });
         }
         data[element.name] =
@@ -62,6 +63,7 @@ export default ({
             query: element.name,
             type: 'number',
             data: data[element.name],
+            variables,
           });
         }
         data[element.name] =
@@ -76,6 +78,7 @@ export default ({
             query: element.name,
             type: 'string',
             data: data[element.name],
+            variables,
           });
         }
         data[element.name] =
@@ -90,6 +93,7 @@ export default ({
             query: element.name,
             type: 'object',
             data: data[element.name],
+            variables,
           });
         }
         data[element.name] =
@@ -109,6 +113,7 @@ export default ({
             query: element.name,
             type: 'array',
             data: data[element.name],
+            variables,
           });
         }
         data[element.name] =
@@ -132,6 +137,7 @@ export default ({
             query: element.name,
             type: 'number',
             data: data[element.name],
+            variables,
           });
         }
 
@@ -147,6 +153,7 @@ export default ({
             query: element.name,
             type: 'string',
             data: data[element.name],
+            variables,
           });
         }
 
@@ -162,6 +169,7 @@ export default ({
             query: element.name,
             type: 'object',
             data: data[element.name],
+            variables,
           });
         }
         data[element.name] =
