@@ -168,9 +168,10 @@ Add 1 to all queries which data type is a number:
 ```js
     operation: {
         type: 'ADD',
-        add: ({ query, type, data }) => {
+        add: ({ query, type, data, variables }) => {
             if (type === 'number') {
-            return data + 1;
+                return data + 1;
+            }
         }
     }
 ```
@@ -179,12 +180,14 @@ Pass a custom action for the query `articles`
 ```js
     operation: {
         type: 'ADD',
-        add: ({ query, type, data }) => {
+        add: ({ query, type, data, variables }) => {
             if (query === 'articles') {
-            return [mutationResult, ...data];
+                return [mutationResult, ...data];
+            }
         }
     }
 ```
+When it's an array of objects `mutationResult` must contain the right `__typename` field too.
 
 Use the custom add/remove if you want to:
 - override the default behavior for arrays
