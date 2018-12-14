@@ -20,6 +20,7 @@ const initialPublishedStoriesCount = stories.filter(s => s.published).length;
 const initialUnpublishedStoriesCount = stories.filter(
   s => !s.published && !s.flagged
 ).length;
+const initialNoParamsStoriesCount = stories.length;
 
 const initialArchivedStoriesCount = stories.filter(s => s.flagged).length;
 const spyError = jest.spyOn(global.console, 'error');
@@ -34,7 +35,7 @@ beforeEach(async () => {
   spyWarn.mockReset();
   const { getByText: gbt, getByTestId: gbti, container: c } = render(
     <ApolloProvider client={createClient()}>
-      <StoriesList />
+      <StoriesList noParamsEdge={true} />
     </ApolloProvider>
   );
   getByText = gbt;
@@ -177,4 +178,25 @@ test('should move a story from published to the archive ORDERING it by title', a
   expect(count.innerHTML).toBe((initialArchivedStoriesCount + 1).toString());
   expect(archivedStoriesArr.length).toBe(initialArchivedStoriesCount + 1);
   expect(archivedStoriesArr[1]).toBe(stories.filter(s => s.published)[0].title);
+});
+
+test('should add/remove a story from stories with no params edge', async () => {
+  fireEvent.click(getByText('Archive_1_TOP'));
+  const completed = await waitForElement(() => getByTestId('completed'));
+  const noParamsStories = container.querySelectorAll(
+    '[data-test="no-params-stories"]'
+  );
+
+  NodeList.prototype.map = Array.prototype.map;
+
+  const noParamsStoriesArr = noParamsStories.map(
+    el => el.querySelector('[data-test]', 'title').innerHTML
+  );
+
+  const count = getByTestId('no-params-count');
+  expect(completed.innerHTML).toBe('Mutation: completed');
+  expect(spyError).not.toHaveBeenCalled();
+  expect(count.innerHTML).toBe(initialNoParamsStoriesCount.toString());
+  expect(noParamsStoriesArr.length).toBe(initialNoParamsStoriesCount);
+  expect(noParamsStoriesArr[0]).toBe(stories.filter(s => s.published)[0].title);
 });

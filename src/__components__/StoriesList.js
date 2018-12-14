@@ -109,6 +109,80 @@ const recomposeHandlers = withHandlers({
       },
     });
   },
+  moveStory: ({ setStoryStatus, setMutation, noParams, noParamsEdge }) => ({
+    from,
+    to,
+    modifier,
+  }) => {
+    if (noParams) {
+      queriesToUpdate = [
+        storiesQuery,
+        storiesCountQuery,
+        storiesNoParamsQuery,
+        storiesCountNoParamsQuery,
+      ];
+    }
+    let variablesFrom = {};
+    let searchVariables = {};
+    let switchVars = {};
+    switch (from) {
+      case 'publish':
+        variablesFrom = {
+          published: true,
+          flagged: false,
+        };
+        searchVariables = { published: true };
+        break;
+      default:
+        break;
+    }
+    switch (to) {
+      case 'archive':
+        variablesFrom = {
+          published: false,
+          flagged: true,
+        };
+        switchVars = { flagged: true };
+        break;
+      case 'unpublish':
+        variablesFrom = {
+          published: false,
+          flagged: false,
+        };
+        switchVars = { published: false };
+        break;
+      default:
+        break;
+    }
+    setStoryStatus({
+      variables: {
+        _id: 1,
+        ...variablesFrom,
+      },
+      update: (proxy, { data: { setStoryStatus: storyStatus = {} } = {} }) => {
+        const mutationResult = storyStatus;
+        const updates = ApolloCacheUpdater({
+          proxy,
+          searchVariables,
+          queriesToUpdate: [storiesQuery, storiesCountQuery],
+          searchOperator: noParamsEdge ? 'AND_EDGE' : 'AND',
+          operation: {
+            type: 'MOVE',
+            row: {
+              type: modifier,
+              field: 'title',
+            },
+          },
+          switchVars,
+          mutationResult,
+          ID: '_id',
+        });
+        if (updates) {
+          setMutation('completed');
+        }
+      },
+    });
+  },
   throwErrors: ({ setStoryStatus, setMutation }) => ({ error }) => { // eslint-disable-line
     if (error && error === ERRORS.QUERY.MISSING_ID) {
       queriesToUpdate = [storiesQueryNoId, storiesCountQuery];
@@ -222,67 +296,6 @@ const recomposeHandlers = withHandlers({
       },
     });
   },
-  moveStory: ({ setStoryStatus, setMutation }) => ({ from, to, modifier }) => {
-    let variablesFrom = {};
-    let searchVariables = {};
-    let switchVars = {};
-    switch (from) {
-      case 'publish':
-        variablesFrom = {
-          published: true,
-          flagged: false,
-        };
-        searchVariables = { published: true };
-        break;
-      default:
-        break;
-    }
-    switch (to) {
-      case 'archive':
-        variablesFrom = {
-          published: false,
-          flagged: true,
-        };
-        switchVars = { flagged: true };
-        break;
-      case 'unpublish':
-        variablesFrom = {
-          published: false,
-          flagged: false,
-        };
-        switchVars = { published: false };
-        break;
-      default:
-        break;
-    }
-    setStoryStatus({
-      variables: {
-        _id: 1,
-        ...variablesFrom,
-      },
-      update: (proxy, { data: { setStoryStatus: storyStatus = {} } = {} }) => {
-        const mutationResult = storyStatus;
-        const updates = ApolloCacheUpdater({
-          proxy,
-          searchVariables,
-          queriesToUpdate: [storiesQuery, storiesCountQuery],
-          operation: {
-            type: 'MOVE',
-            row: {
-              type: modifier,
-              field: 'title',
-            },
-          },
-          switchVars,
-          mutationResult,
-          ID: '_id',
-        });
-        if (updates) {
-          setMutation('completed');
-        }
-      },
-    });
-  },
 });
 
 const StoriesContainer = ({
@@ -383,7 +396,7 @@ const StoriesContainer = ({
         actions={{
           first: {
             label: 'Default',
-            move: moveStory,
+            move: () => {},
           },
           second: {
             label: '',
@@ -524,7 +537,7 @@ const withStoriesNoParamsQuery = graphql(storiesNoParamsQuery, {
 });
 
 const withStoriesNoParamsEdgeQuery = graphql(storiesQuery, {
-  // the following will work as well
+  // the following should work as well
   // options: () => ({
   //   variables: {}
   // }),

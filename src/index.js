@@ -221,7 +221,6 @@ export default ({
           const m = k.match(re);
           if (m) {
             const vars = JSON.parse(m[0]);
-            // console.log(k, Object.entries(vars).filter(v => !!v[1]).length === 0)
             if (Object.entries(vars).filter(v => !!v[1]).length === 0)
               match = true; // object accepts vars but either an empty varibles object or not variables at all were passed
           }
@@ -274,6 +273,10 @@ export default ({
 
   if (errors.length === 0 && !!mutationResult) {
     targetQueries.forEach(element => {
+      const processedCachedQueries = {
+        added: {},
+        removed: {},
+      };
       element.entries.forEach(variables => {
         const { query } = element;
         if (operationObj.type === 'REMOVE' || operationObj.type === 'ADD') {
@@ -305,43 +308,87 @@ export default ({
             customRemove,
             errors,
           });
+
           // add element only if target queries for the switch are in ROOT_QUERY
           const safeSwitchVars = switchVars;
           searchKeys = Object.entries(safeSwitchVars).map(entry =>
             JSON.stringify({ [entry[0]]: entry[1] })
           );
-          const matches = Object.entries(queries).filter(entry => {
-            const k = entry[0];
-            const match =
-              operator === 'AND'
+          const matches = Object.entries(queries)
+            .map(q => ({
+              name: q[0].substr(0, q[0].indexOf('(')),
+              query: q,
+            }))
+            .filter(entry => {
+              const k = entry.query[0];
+              let match = operator.includes('AND')
                 ? searchKeys.filter(searchKey =>
                     k.includes(searchKey.substr(1, searchKey.length - 2))
                   ).length === searchKeys.length
                 : searchKeys.filter(searchKey =>
                     k.includes(searchKey.substr(1, searchKey.length - 2))
                   ).length > 0;
-            return match;
-          });
+              if (operator.includes('EDGE')) {
+                // allowEmptyVars
+                const re = /{(.*)}/;
+                const m = k.match(re);
+                if (m) {
+                  const vars = JSON.parse(m[0]);
+                  if (Object.entries(vars).filter(v => !!v[1]).length === 0)
+                    match = true; // object accepts vars but either an empty varibles object or not variables at all were passed
+                }
+              }
+              return match;
+            });
           const processQuery = matches.length > 0;
           if (processQuery) {
             const re = /{(.*)}/;
-            const m = matches[0][0].match(re);
-            const queryVars = JSON.parse(m[0]);
-            handleElement({
-              proxy,
-              query,
-              mutationResult: elementToMove,
-              variables: {
-                ...queryVars,
-              },
-              operation: 'ADD',
-              insertion: operationObj.row.type,
-              field: operationObj.row.field,
-              ordering: operationObj.row.ordering,
-              ID,
-              element,
-              customAdd,
-              errors,
+            const mm = matches.map(match => ({
+              name: match.name,
+              match: match.query[0].match(re),
+              cachedQuery: match.query[0],
+            }));
+            const queryVars = mm.map(m => ({
+              name: m.name,
+              cachedQuery: m.cachedQuery,
+              query: apolloQueries.filter(aq => aq.name === m.name)[0].query,
+              variables: JSON.parse(m.match[0]),
+            }));
+            queryVars.forEach(entry => {
+              // add once only
+              if (
+                (!processedCachedQueries.added[entry.name] ||
+                  !processedCachedQueries.added[entry.name].includes(
+                    entry.cachedQuery
+                  )) &&
+                element.name === entry.name
+              ) {
+                handleElement({
+                  proxy,
+                  query: entry.query,
+                  mutationResult: elementToMove,
+                  variables: {
+                    ...entry.variables,
+                  },
+                  operation: 'ADD',
+                  insertion: operationObj.row.type,
+                  field: operationObj.row.field,
+                  ordering: operationObj.row.ordering,
+                  ID,
+                  element,
+                  customAdd,
+                  errors,
+                });
+              }
+              const existingAddedEntry =
+                processedCachedQueries.added[entry.name];
+              if (!existingAddedEntry) {
+                processedCachedQueries.added[entry.name] = [];
+              }
+              processedCachedQueries.added[entry.name] = [
+                ...processedCachedQueries.added[entry.name],
+                entry.cachedQuery,
+              ];
             });
           }
         }

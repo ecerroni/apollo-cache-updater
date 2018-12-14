@@ -28,7 +28,7 @@ beforeEach(() => {
 
 afterEach(cleanup);
 
-test('should ADD a story to the TOP published and TOP noParams', async () => {
+test('should ADD a story to the TOP published', async () => {
   const { getByText, container, getByTestId } = render(
     <ApolloProvider client={createClient()}>
       <StoriesList />
@@ -70,7 +70,7 @@ test('should ADD a story to the TOP published and TOP noParams', async () => {
   expect(noParamsStoriesArr[0]).toBe(stories[0].title);
 });
 
-test('should REMOVE a story from published && noParams', async () => {
+test('should REMOVE a story from published', async () => {
   const { getByText, container, getByTestId } = render(
     <ApolloProvider client={createClient()}>
       <StoriesList />

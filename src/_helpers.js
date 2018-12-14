@@ -96,6 +96,23 @@ export const sortItems = ({ items = [], ordering = 'ASC', field = null }) =>
     return 0; // do nothing;
   });
 
+export const findDuplicateInArray = (arr, ID) => {
+  const object = {};
+  const result = [];
+
+  arr.forEach(item => {
+    if (!object[item[ID]]) object[item[ID]] = 0;
+    object[item[ID]] += 1;
+  });
+
+  Object.entries(arr).forEach(entry => {
+    if (object[entry[0]] >= 2) {
+      result.push(entry[1]);
+    }
+  });
+  return result;
+};
+
 export const inCache = ({ query, queries, variables }) => {
   const searchKeys = JSON.stringify(variables);
   const currentQuery = `${query}(${searchKeys})`;

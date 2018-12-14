@@ -15,6 +15,8 @@
 Helper for updating the apollo cache after a mutation
 </center>
 
+## Status
+Under heavy development
 
 ## Why?
 I wanted an updater that steals the magic of refetch queries while keeping the power of apollo local cache, but stripped of the boilerplate usually needed for each mutation update.
@@ -137,7 +139,7 @@ Complete configuration object
 ```js
 {
     proxy, // mandatory
-    searchOperator: 'AND', // AND || OR, default AND. If you need to match all searchVariables or just one at least
+    searchOperator: '```AND```', // [```AND```, ```AND```_EDGE, OR, OR_EDGE], default ```AND```. If you need to match all searchVariables or just one at least
     searchVariables: {
         ...vars // searchVariables cannot be nested objects
     },
@@ -197,7 +199,67 @@ Note:
 - if you do not return the mutated data (or it is undefined) the custom add/remove function's result will be skipped and default actions'result will be used instead. However the logic inside the custom function will always be executed.
 - if the operation type is MOVE you need to pass both custom  `add` and `remove`. Passing just one of them will not work.
 
+#### EDGE cases
+There are edge situations where the cache includes queries like:
+- articles({})
+- articles({"sort":null,"limit":null,"start":null,"where":null})
 
+This typically happen when a query with params like
+```
+query articles($sort: String, $limit: Int, $start: Int, $where: JSON) {
+    articles(sort: $sort, limit: $limit, start: $start, where: $where) {
+      _id
+      title
+      published
+      flagged
+    }
+  }
+```
+gets called with either no variables object at all (variables object is not present) or a variables empty object has been passed, such as `variables: {}`. This may happen when variables are built programmatically.
+
+`articles({})` and `articles({"sort":null,"limit":null,"start":null,"where":null})` are not handled by default and will be skipped, that is they will not be affected by the update.
+
+However EDGE cases can be handled passing one of the EDGE searchOperator(s) such as ````AND```_EDGE` and `OR_EDGE`.
+
+As an example using searchOperator: '```AND```_EDGE' the end result would be:
+|                                                                | ADD(to published) | REMOVE(from published) | MOVE(from published to flagged) |
+|----------------------------------------------------------------|-------------------|------------------------|---------------------------------|
+| articles({"published":true})                                   | +1                | -1                     | -1                              |
+| articles({"flagged":true})                                     | 0                 | 0                      | +1                              |
+| articles({})                                                   | +1                | -1                     | +1/-1 (=no-change)              |
+| articles({"sort":null,"limit":null,"start":null,"where":null}) | +1                | -1                     | +1/-1 (=no-change)              |
+
+On the other hand queries with no variables included like:
+```
+query articles {
+    articles {
+      _id
+      title
+      published
+      flagged
+    }
+  }
+```
+are not considered EDGE cases. If included in the `queriesToUpdate` array they will be always updated like the following despite searchOperator that is used:
+|                              | ADD(to published) | REMOVE(from published) | MOVE(from published to flagged) |
+|------------------------------|-------------------|------------------------|---------------------------------|
+| articles({"published":true}) | +1                | -1                     | -1                              |
+| articles({"flagged":true})   | 0                 | 0                      | +1                              |
+| articles                     | +1                | -1                     | +1/-1 (=no-change)              |
+
+In the unlikely case that `queriesToUpdate` contains exclusively queries with no paramaters, the `searchVariables` should be an emptyObject:
+```
+update: (proxy, { data: { createArticle = {} } }) => { // your mutation response        
+        const mutationResult = createArticle;
+        const updates = ApolloCacheUpdater({
+            proxy,
+            queriesToUpdate: [getArticlesNoParams, articlesCountNoParams],
+            searchVariables: {},
+            mutationResult,
+        })
+        if (updates) console.log(`Article added`)
+    },
+```
 ## License
 
 MIT © [ric0](https://github.com/ecerroni)
