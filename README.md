@@ -139,7 +139,7 @@ Complete configuration object
 ```js
 {
     proxy, // mandatory
-    searchOperator: '```AND```', // [```AND```, ```AND```_EDGE, OR, OR_EDGE], default ```AND```. If you need to match all searchVariables or just one at least
+    searchOperator: 'AND', // [AND, AND_EDGE, OR, OR_EDGE], default AND. If you need to match all searchVariables or just one at least
     searchVariables: {
         ...vars // searchVariables cannot be nested objects
     },
@@ -222,9 +222,9 @@ gets called with either no variables object at all (variables object is not pres
 
 `articles({})` and `articles({"sort":null,"limit":null,"start":null,"where":null})` are not handled by default and will be skipped, that is they will not be affected by the update.
 
-However EDGE cases can be handled passing one of the EDGE searchOperator(s) such as ````AND```_EDGE` and `OR_EDGE`.
+However EDGE cases can be handled passing one of the EDGE searchOperator(s) such as `AND_EDGE` and `OR_EDGE`.
 
-As an example using searchOperator: '```AND```_EDGE' the end result would be:
+As an example using searchOperator: 'AND_EDGE' the end result would be:
 |                                                                | ADD(to published) | REMOVE(from published) | MOVE(from published to flagged) |
 |----------------------------------------------------------------|-------------------|------------------------|---------------------------------|
 | articles({"published":true})                                   | +1                | -1                     | -1                              |
