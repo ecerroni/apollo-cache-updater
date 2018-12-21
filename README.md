@@ -225,6 +225,7 @@ gets called with either no variables object at all (variables object is not pres
 However EDGE cases can be handled passing one of the EDGE searchOperator(s) such as `AND_EDGE` and `OR_EDGE`.
 
 As an example using searchOperator: 'AND_EDGE' the end result would be:
+
 |                                                                | ADD(to published) | REMOVE(from published) | MOVE(from published to flagged) |
 |----------------------------------------------------------------|-------------------|------------------------|---------------------------------|
 | articles({"published":true})                                   | +1                | -1                     | -1                              |
@@ -244,6 +245,7 @@ query articles {
   }
 ```
 are not considered EDGE cases. If included in the `queriesToUpdate` array they will be always updated like the following despite searchOperator that is used:
+
 |                              | ADD(to published) | REMOVE(from published) | MOVE(from published to flagged) |
 |------------------------------|-------------------|------------------------|---------------------------------|
 | articles({"published":true}) | +1                | -1                     | -1                              |
