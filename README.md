@@ -3,7 +3,8 @@
 [![Generated with nod](https://img.shields.io/badge/generator-nod-2196F3.svg?style=flat-square)](https://github.com/diegohaz/nod)
 [![NPM version](https://img.shields.io/npm/v/apollo-cache-updater.svg?style=flat-square)](https://npmjs.org/package/apollo-cache-updater)
 [![Build Status](https://img.shields.io/travis/ecerroni/apollo-cache-updater/master.svg?style=flat-square)](https://travis-ci.org/ecerroni/apollo-cache-updater) [![Coverage Status](https://img.shields.io/codecov/c/github/ecerroni/apollo-cache-updater/master.svg?style=flat-square)](https://codecov.io/gh/ecerroni/apollo-cache-updater/branch/master)
-
+![Dependencies](https://img.shields.io/librariesio/dependents/npm/apollo-cache-updater.svg)
+![minified + gzip](https://img.shields.io/bundlephobia/minzip/apollo-cache-updater.svg)
 
 
 <p align="center">
@@ -12,7 +13,7 @@
 
 
 <center>
-Helper for updating the apollo cache after a mutation
+Zero-dependencies helper for updating the apollo cache after a mutation
 </center>
 
 ## Status
