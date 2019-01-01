@@ -43,7 +43,13 @@
     ]
   },
   "keywords": [
-    "apollo-cache-updater"
+    "apollo-cache-updater",
+    "apollo",
+    "cache",
+    "graphql",
+    "react",
+    "vue",
+    "react-native"
   ],
   "dependencies": {},
   "devDependencies": {
