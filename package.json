@@ -4,15 +4,13 @@
   "description": "Helper for updating apollo cache after a mutation",
   "license": "MIT",
   "repository": "ecerroni/apollo-cache-updater",
-  "main": "dist/index.js",
-  "browser": "lib/index.js",
+  "main": "lib/index.js",
   "author": {
     "name": "ric0",
     "email": "e.cerroni@gmail.com",
     "url": "https://github.com/ecerroni"
   },
   "files": [
-    "dist",
     "lib"
   ],
   "scripts": {
@@ -23,10 +21,9 @@
     "lint": "eslint .",
     "lint-fix": "eslint --fix .",
     "clean": "rimraf dist",
-    "build-browser": "babel ./src --out-dir ./lib --source-maps",
-    "build-node": "babel ./src --out-dir ./dist --source-maps",
+    "build-node": "babel ./src --out-dir ./lib --source-maps",
     "prebuild": "npm run clean",
-    "build": "npm run build-node && npm run build-browser",
+    "build": "npm run build-node",
     "preversion": "npm run lint && npm test && npm run build",
     "version": "standard-changelog && git add CHANGELOG.md",
     "postpublish": "git push apollo-cache-updater master --follow-tags"
