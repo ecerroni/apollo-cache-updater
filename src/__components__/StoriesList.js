@@ -128,11 +128,13 @@ const recomposeHandlers = withHandlers({
       },
     });
   },
-  moveStory: ({ setStoryStatus, setMutation, noParams, noParamsEdge }) => ({
-    from,
-    to,
-    modifier,
-  }) => {
+  moveStory: ({
+    setStoryStatus,
+    setMutation,
+    noParams,
+    noParamsEdge,
+    newValue = false,
+  }) => ({ from, to, modifier }) => {
     if (noParams) {
       queriesToUpdate = [
         storiesQuery,
@@ -177,6 +179,7 @@ const recomposeHandlers = withHandlers({
       variables: {
         _id: 1,
         ...variablesFrom,
+        newValue,
       },
       update: (proxy, { data: { setStoryStatus: storyStatus = {} } = {} }) => {
         const mutationResult = storyStatus;
@@ -383,7 +386,7 @@ const StoriesContainer = ({
           },
           second: {
             label: 'Archive',
-            move: moveStory,
+            move: () => {},
           },
         }}
       />

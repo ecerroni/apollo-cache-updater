@@ -30,7 +30,7 @@ const defaultMocks = {
   }),
   /* eslint-disable no-underscore-dangle */
   Mutation: () => ({
-    setStoryStatus: (_, { _id, published, flagged }) => {
+    setStoryStatus: (_, { _id, published, flagged, newValue = false }) => {
       const { stories } = fixtures;
       const story =
         stories.filter(s => s._id === _id).length > 0
@@ -39,11 +39,15 @@ const defaultMocks = {
       if (!story) {
         return null;
       }
-      return {
+      const result = {
         ...story,
         published,
         flagged,
       };
+      if (newValue) {
+        result.title = 'New title';
+      }
+      return result;
     },
     addStory: (_, { _id, title, published, flagged }) => ({
       _id,

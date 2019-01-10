@@ -29,7 +29,7 @@ export default `
   }
 
   type Mutation {
-      setStoryStatus(_id: Int! published: Boolean! flagged: Boolean!): Story
+      setStoryStatus(_id: Int! published: Boolean! flagged: Boolean! newValue: Boolean): Story
       addStory(_id: Int! title: String! published: Boolean! flagged: Boolean!): Story!
       removeStory(_id: Int!): String
   }

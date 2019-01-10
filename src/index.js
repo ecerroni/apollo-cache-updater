@@ -297,7 +297,7 @@ export default ({
           });
         }
         if (operationObj.type === 'MOVE') {
-          const elementToMove = handleElement({
+          let elementToMove = handleElement({
             proxy,
             query,
             mutationResult,
@@ -308,6 +308,16 @@ export default ({
             customRemove,
             errors,
           });
+          if (
+            !!elementToMove &&
+            typeof elementToMove === 'object' &&
+            !Array.isArray(elementToMove)
+          ) {
+            elementToMove = {
+              ...elementToMove,
+              ...mutationResult,
+            };
+          }
 
           // add element only if target queries for the switch are in ROOT_QUERY
           const safeSwitchVars = switchVars;

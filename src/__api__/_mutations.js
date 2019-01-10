@@ -7,9 +7,16 @@ export const setStoryStatus = gql`
     $_id: Int!
     $published: Boolean!
     $flagged: Boolean!
+    $newValue: Boolean
   ) {
-    setStoryStatus(_id: $_id, published: $published, flagged: $flagged) {
+    setStoryStatus(
+      _id: $_id
+      published: $published
+      flagged: $flagged
+      newValue: $newValue
+    ) {
       ...StoryStatus
+      title
     }
   }
   ${StoryData.fragments.storyStatus}
