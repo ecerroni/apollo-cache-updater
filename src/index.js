@@ -9,6 +9,22 @@ const allowedOperations = {
   searchOperator: ['AND', 'AND_EDGE', 'OR', 'OR_EDGE'],
 };
 
+const extractQueryName = bodyString => {
+  const re = /{(.*)}/;
+  const m = bodyString.match(re);
+  let name;
+  if (m[1].indexOf('(') > -1) {
+    name = m[1].substr(0, m[1].indexOf('('));
+  } else if (m[1].indexOf('@') > -1) {
+    name = m[1].substr(0, m[1].indexOf('@'));
+  } else if (m[1].indexOf('{') > -1) {
+    name = m[1].substr(0, m[1].indexOf('{'));
+  } else {
+    name = m[1]; // eslint-disable-line prefer-destructuring
+  }
+  return name;
+};
+
 /**
  * This function updates apollo cache based on the configuration object.
  * @param {Object} configuration object
@@ -177,22 +193,10 @@ export default ({
   const queries = proxy.data.data.ROOT_QUERY;
   const apolloQueries = queriesToUpdate.map(query => {
     // extract the name of the query
-    let queryName;
     const bodyString = JSON.stringify(query.loc.source.body)
       .replace(/\\n/g, '')
       .replace(/ /g, '');
-
-    const re = /{(.*)}/;
-    const m = bodyString.match(re);
-    if (m[1].indexOf('(') > -1) {
-      queryName = m[1].substr(0, m[1].indexOf('('));
-    } else if (m[1].indexOf('@') > -1) {
-      queryName = m[1].substr(0, m[1].indexOf('@'));
-    } else if (m[1].indexOf('{') > -1) {
-      queryName = m[1].substr(0, m[1].indexOf('{'));
-    } else {
-      queryName = m[1]; // eslint-disable-line prefer-destructuring
-    }
+    const queryName = extractQueryName(bodyString);
     return {
       name: queryName,
       query,
@@ -329,6 +333,16 @@ export default ({
               name: q[0].substr(0, q[0].indexOf('(')),
               query: q,
             }))
+            .filter(
+              entry =>
+                entry.query[0] === element.name ||
+                (entry.query[0].length > element.name.length &&
+                  entry.query[0].substr(0, element.name.length) ===
+                    element.name &&
+                  ['(', '@', '{'].includes(
+                    entry.query[0][element.name.length + 1]
+                  ))
+            )
             .filter(entry => {
               const k = entry.query[0];
               let match = operator.includes('AND')
