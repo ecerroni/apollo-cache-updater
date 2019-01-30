@@ -1,6 +1,6 @@
 {
   "name": "apollo-cache-updater",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Helper for updating apollo cache after a mutation",
   "license": "MIT",
   "repository": "ecerroni/apollo-cache-updater",
