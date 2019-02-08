@@ -1,5 +1,6 @@
 import filterElement from './_filter-element';
 import insertElement from './_insert-element';
+import { deepCopy } from '../_helpers';
 
 export default ({
   proxy,
@@ -19,10 +20,17 @@ export default ({
   let targetElement;
   try {
     // Update data array
-    const data = proxy.readQuery({
+    let data = proxy.readQuery({
       query,
       variables,
     });
+    if (
+      // unfreeze whole data if data[element.name] array is frozen
+      Array.isArray(data[element.name]) &&
+      Object.isFrozen(data[element.name])
+    ) {
+      data = deepCopy(data);
+    }
     if (operation === 'REMOVE') {
       if (Array.isArray(data[element.name])) {
         // eslint-disable-next-line prefer-destructuring
@@ -42,6 +50,7 @@ export default ({
             variables,
           });
         }
+
         data[element.name] =
           customData && typeof customData === typeof data[element.name]
             ? customData

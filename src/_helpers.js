@@ -121,3 +121,12 @@ export const inCache = ({ query, queries, variables }) => {
   );
   return matches.length > 0;
 };
+
+export const deepCopy = obj =>
+  Object.keys(obj).reduce(
+    (v, d) =>
+      Object.assign(v, {
+        [d]: obj[d].constructor === Object ? deepCopy(obj[d]) : obj[d],
+      }),
+    {}
+  );
