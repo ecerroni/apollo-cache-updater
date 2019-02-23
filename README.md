@@ -106,6 +106,31 @@ removeArticleMutation({ // your mutation
 
 ### Advanced Usage
 
+Example: Match any query
+
+If you need to go through all matching query names ignoring any variables you should use the `ANY` operator. This does not work with the `MOVE` operation.
+
+The following code removes the article with the matching id from any getArticles cached items, despite all possibe variables combinations stored in the cache.
+
+```
+removeArticleMutation({ // your mutation
+    variables: {
+        id: article.id // your mutation vars
+    },
+    update: (proxy }) => {
+        const updates = ApolloCacheUpdater({
+            proxy, // mandatory
+            operator: 'ANY',
+            queriesToUpdate: [getArticles], // queries you want to automatically update
+            searchVariables: {},
+            operation: 'REMOVE',
+            mutationResult: { id: article.id },
+        })
+        if (updates) console.log(`Article removed`) // if no errors
+    },
+})
+```
+
 Example: Move an Article
 
 The following block of code:
@@ -140,7 +165,7 @@ Complete configuration object
 ```js
 {
     proxy, // mandatory
-    searchOperator: 'AND', // [AND, AND_EDGE, OR, OR_EDGE], default AND. If you need to match all searchVariables or just one at least
+    searchOperator: 'AND', // [AND, AND_EDGE, OR, OR_EDGE, ANY], default AND. If you need to match all searchVariable, just one at least or none (with the latter will ignore any variables)
     searchVariables: {
         ...vars // searchVariables cannot be nested objects
     },

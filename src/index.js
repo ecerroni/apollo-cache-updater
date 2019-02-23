@@ -6,7 +6,7 @@ const allowedOperations = {
   row: ['TOP', 'BOTTOM', 'SORT'],
   add: undefined,
   remove: undefined,
-  searchOperator: ['AND', 'AND_EDGE', 'OR', 'OR_EDGE'],
+  searchOperator: ['AND', 'AND_EDGE', 'OR', 'OR_EDGE', 'ANY'],
 };
 
 const extractQueryName = bodyString => {
@@ -212,10 +212,13 @@ export default ({
       )
       .reduce((arr, q) => {
         const k = q[0];
+        // eslint-disable-next-line no-nested-ternary
         let match = operator.includes('AND')
           ? searchKeys.filter(searchKey =>
               k.includes(searchKey.substr(1, searchKey.length - 2))
             ).length === searchKeys.length
+          : operator === 'ANY'
+          ? true
           : searchKeys.filter(searchKey =>
               k.includes(searchKey.substr(1, searchKey.length - 2))
             ).length > 0;

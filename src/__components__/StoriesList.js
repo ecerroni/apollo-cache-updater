@@ -44,7 +44,14 @@ const recomposeStates = compose(withState('mutation', 'setMutation', ''));
 let queriesToUpdate = [storiesQuery, storiesCountQuery];
 
 const recomposeHandlers = withHandlers({
-  add: ({ addStory, setMutation, noParams, noParamsEdge, customAdd }) => () => {
+  add: ({
+    addStory,
+    setMutation,
+    noParams,
+    noParamsEdge,
+    customAdd,
+    any,
+  }) => () => {
     if (noParams) {
       queriesToUpdate = [
         storiesQuery,
@@ -62,10 +69,13 @@ const recomposeHandlers = withHandlers({
         const defaultUpdaterObject = {
           proxy, // mandatory
           queriesToUpdate,
-          searchOperator: noParamsEdge ? 'AND_EDGE' : 'AND',
-          searchVariables: {
-            published: true, // find the mutation result article that in the cache is still part of the queries with published = true and remove it
-          },
+          // eslint-disable-next-line no-nested-ternary
+          searchOperator: noParamsEdge ? 'AND_EDGE' : any ? 'ANY' : 'AND',
+          searchVariables: any
+            ? {}
+            : {
+                published: true, // find the mutation result article that in the cache is still part of the queries with published = true and remove it
+              },
           mutationResult,
           ID: '_id',
         };
@@ -88,6 +98,7 @@ const recomposeHandlers = withHandlers({
     noParams,
     noParamsEdge,
     customRemove,
+    any,
   }) => () => {
     if (noParams) {
       queriesToUpdate = [
@@ -102,15 +113,20 @@ const recomposeHandlers = withHandlers({
         _id: 1,
       },
       update: proxy => {
-        const mutationResult = { _id: '1' };
+        const mutationResult = any
+          ? [{ _id: '1' }, { _id: '3' }, { _id: '4' }]
+          : { _id: '1' };
         const defaultUpdaterObject = {
           proxy, // mandatory
           queriesToUpdate,
           operation: 'REMOVE',
-          searchOperator: noParamsEdge ? 'AND_EDGE' : 'AND',
-          searchVariables: {
-            published: true, // find the mutation result article that in the cache is still part of the queries with published = true and remove it
-          },
+          // eslint-disable-next-line no-nested-ternary
+          searchOperator: noParamsEdge ? 'AND_EDGE' : any ? 'ANY' : 'AND',
+          searchVariables: any
+            ? {}
+            : {
+                published: true, // find the mutation result article that in the cache is still part of the queries with published = true and remove it
+              },
           mutationResult,
           ID: '_id',
         };
@@ -121,9 +137,17 @@ const recomposeHandlers = withHandlers({
             remove: customRemove,
           };
         }
-        ApolloCacheUpdater({
-          ...defaultUpdaterObject,
-        });
+        if (any) {
+          mutationResult.forEach(r => {
+            ApolloCacheUpdater({
+              ...defaultUpdaterObject,
+              mutationResult: r,
+            });
+          });
+        } else
+          ApolloCacheUpdater({
+            ...defaultUpdaterObject,
+          });
         setMutation('completed');
       },
     });
