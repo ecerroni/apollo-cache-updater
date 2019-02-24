@@ -104,6 +104,44 @@ removeArticleMutation({ // your mutation
 ```
 <hr />
 
+### Query params
+
+This package assumes an exact correspondence between operation's params and query's params. So the updates will not work if you're using queries like this:
+```
+query getItems(
+  $limit: Int
+  $offset: Int
+  $sort: String
+) {
+  getItems(
+    options: {
+      limit: $limit
+      offset: $offset
+      sort: $sort
+    }
+  ) {
+...
+}
+```
+
+It should be:
+```
+query getItems(
+  $limit: Int
+  $offset: Int
+  $sort: String
+) {
+  getItems(
+    limit: $limit
+    offset: $offset
+    sort: $sort
+  ) {
+...
+}
+```
+
+<hr />
+
 ### Advanced Usage
 
 Example: Match any query
