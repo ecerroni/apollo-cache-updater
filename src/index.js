@@ -202,45 +202,47 @@ export default ({
       query,
     };
   });
-
   // build the entries that match the search variables to be iterated later
   const targetQueries = apolloQueries.map(item => ({
     ...item,
-    entries: Object.entries(queries)
-      .filter(
-        entry => entry[0].substring(0, item.name.length + 1) === `${item.name}(`
-      )
-      .reduce((arr, q) => {
-        const k = q[0];
-        // eslint-disable-next-line no-nested-ternary
-        let match = operator.includes('AND')
-          ? searchKeys.filter(searchKey =>
-              k.includes(searchKey.substr(1, searchKey.length - 2))
-            ).length === searchKeys.length
-          : operator === 'ANY'
-          ? true
-          : searchKeys.filter(searchKey =>
-              k.includes(searchKey.substr(1, searchKey.length - 2))
-            ).length > 0;
-        if (operator.includes('EDGE')) {
-          // allowEmptyVars
-          const re = /{(.*)}/;
-          const m = k.match(re);
-          if (m) {
-            const vars = JSON.parse(m[0]);
-            if (Object.entries(vars).filter(v => !!v[1]).length === 0)
-              match = true; // object accepts vars but either an empty varibles object or not variables at all were passed
-          }
-        }
-        if (match) {
-          const re = /{(.*)}/;
-          const m = k.match(re);
-          if (m != null)
-            return [...arr, JSON.parse(`{${m[0].replace(re, '$1')}}`)];
-          return [...arr];
-        }
-        return [...arr];
-      }, []),
+    entries: queries
+      ? Object.entries(queries)
+          .filter(
+            entry =>
+              entry[0].substring(0, item.name.length + 1) === `${item.name}(`
+          )
+          .reduce((arr, q) => {
+            const k = q[0];
+            // eslint-disable-next-line no-nested-ternary
+            let match = operator.includes('AND')
+              ? searchKeys.filter(searchKey =>
+                  k.includes(searchKey.substr(1, searchKey.length - 2))
+                ).length === searchKeys.length
+              : operator === 'ANY'
+              ? true
+              : searchKeys.filter(searchKey =>
+                  k.includes(searchKey.substr(1, searchKey.length - 2))
+                ).length > 0;
+            if (operator.includes('EDGE')) {
+              // allowEmptyVars
+              const re = /{(.*)}/;
+              const m = k.match(re);
+              if (m) {
+                const vars = JSON.parse(m[0]);
+                if (Object.entries(vars).filter(v => !!v[1]).length === 0)
+                  match = true; // object accepts vars but either an empty varibles object or not variables at all were passed
+              }
+            }
+            if (match) {
+              const re = /{(.*)}/;
+              const m = k.match(re);
+              if (m != null)
+                return [...arr, JSON.parse(`{${m[0].replace(re, '$1')}}`)];
+              return [...arr];
+            }
+            return [...arr];
+          }, [])
+      : [],
   }));
   if (!mutationResult || mutationResult === null)
     errors.push(
