@@ -36,7 +36,7 @@ test('should ADD a story to the BOTTOM published && noParams with customAdd', as
         customAdd={({ data, query, type, variables }) => {
           if (type === 'array') {
             return [
-              ...data,
+              ...data.filter(d => d._id !== 7), // eslint-disable-line
               {
                 _id: 7,
                 title: 'Yo!',

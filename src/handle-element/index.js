@@ -1,6 +1,7 @@
 import filterElement from './_filter-element';
 import insertElement from './_insert-element';
 import { deepCopy } from '../_helpers';
+import { NO_PARAMS } from '../_enums';
 
 export default ({
   proxy,
@@ -18,11 +19,19 @@ export default ({
   ordering,
 }) => {
   let targetElement;
+  const proxyObject = { query, variables };
+
+  if (
+    variables &&
+    typeof variables === 'object' &&
+    Object.prototype.hasOwnProperty.call(variables, '__vars') &&
+    element.type === NO_PARAMS
+  )
+    delete proxyObject.variables;
   try {
     // Update data array
     let data = proxy.readQuery({
-      query,
-      variables,
+      ...proxyObject,
     });
     if (
       // unfreeze whole data if data[element.name] array is frozen
@@ -191,8 +200,7 @@ export default ({
       }
     }
     proxy.writeQuery({
-      query,
-      variables,
+      ...proxyObject,
       data,
     });
   } catch (e) {

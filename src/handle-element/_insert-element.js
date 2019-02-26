@@ -1,6 +1,9 @@
 import { sortItems } from '../_helpers';
 import { ERRORS } from '../messages';
 
+const isUnique = (arr, item, ID) =>
+  arr.filter(a => a[ID] === item[ID]).length === 0;
+
 export default ({
   data,
   mutationResult,
@@ -36,7 +39,8 @@ export default ({
       }
       if (
         typeof data[0] === 'object' &&
-        !Array.isArray(data[0] && data[0] !== null)
+        !Array.isArray(data[0]) &&
+        data[0] !== null
       ) {
         if (!field) {
           errors.push(
@@ -58,11 +62,23 @@ export default ({
           );
           return data;
         }
-        return sortItems({ items: [mutationResult, ...data], ordering, field });
+        return sortItems({
+          items: isUnique(data, mutationResult, ID)
+            ? [mutationResult, ...data]
+            : data,
+          ordering,
+          field,
+        });
       }
-      return sortItems({ items: [mutationResult, ...data], ordering });
+      // return sortItems({
+      //   items: isUnique(data, mutationResult, ID)
+      //     ? [mutationResult, ...data]
+      //     : data,
+      //   ordering,
+      // });
+      return data;
     }
     if (insertion === 'BOTTOM') return [...data, mutationResult];
   }
-  return [mutationResult, ...data];
+  return isUnique(data, mutationResult, ID) ? [mutationResult, ...data] : data;
 };

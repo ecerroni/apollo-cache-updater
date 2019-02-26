@@ -210,7 +210,7 @@ const recomposeHandlers = withHandlers({
         const updates = ApolloCacheUpdater({
           proxy,
           searchVariables,
-          queriesToUpdate: [storiesQuery, storiesCountQuery],
+          queriesToUpdate,
           searchOperator: noParamsEdge ? 'AND_EDGE' : 'AND',
           operation: {
             type: 'MOVE',

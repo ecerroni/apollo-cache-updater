@@ -1,5 +1,6 @@
 import handleElement from './handle-element';
 import { ERRORS, WARNINGS } from './messages';
+import { NO_PARAMS, WITH_PARAMS } from './_enums';
 
 const allowedOperations = {
   type: ['ADD', 'REMOVE', 'MOVE'],
@@ -9,11 +10,13 @@ const allowedOperations = {
   searchOperator: ['AND', 'AND_EDGE', 'OR', 'OR_EDGE', 'ANY'],
 };
 
-const extractQueryName = bodyString => {
+const extractQueryNameAndType = bodyString => {
   const re = /{(.*)}/;
   const m = bodyString.match(re);
   let name;
+  let type = NO_PARAMS;
   if (m[1].indexOf('(') > -1) {
+    type = WITH_PARAMS;
     name = m[1].substr(0, m[1].indexOf('('));
   } else if (m[1].indexOf('@') > -1) {
     name = m[1].substr(0, m[1].indexOf('@'));
@@ -22,7 +25,7 @@ const extractQueryName = bodyString => {
   } else {
     name = m[1]; // eslint-disable-line prefer-destructuring
   }
-  return name;
+  return [name, type];
 };
 
 /**
@@ -196,9 +199,10 @@ export default ({
     const bodyString = JSON.stringify(query.loc.source.body)
       .replace(/\\n/g, '')
       .replace(/ /g, '');
-    const queryName = extractQueryName(bodyString);
+    const [queryName, queryType] = extractQueryNameAndType(bodyString);
     return {
       name: queryName,
+      type: queryType,
       query,
     };
   });
@@ -207,9 +211,20 @@ export default ({
     ...item,
     entries: queries
       ? Object.entries(queries)
-          .filter(
-            entry =>
-              entry[0].substring(0, item.name.length + 1) === `${item.name}(`
+          .filter(entry =>
+            // entry[0].substring(0, item.name.length + 1) === `${item.name}(`
+            {
+              if (item.type === WITH_PARAMS) {
+                return (
+                  entry[0].substring(0, item.name.length + 1) ===
+                  `${item.name}(`
+                );
+              }
+              if (item.type === NO_PARAMS) {
+                return entry[0].substring(0, item.name.length) === item.name;
+              }
+              return false;
+            }
           )
           .reduce((arr, q) => {
             const k = q[0];
@@ -238,6 +253,8 @@ export default ({
               const m = k.match(re);
               if (m != null)
                 return [...arr, JSON.parse(`{${m[0].replace(re, '$1')}}`)];
+              if (m == null && item.type === NO_PARAMS)
+                return [...arr, { __vars: null }];
               return [...arr];
             }
             return [...arr];
@@ -305,7 +322,7 @@ export default ({
             errors,
           });
         }
-        if (operationObj.type === 'MOVE') {
+        if (operationObj.type === 'MOVE' && element.type === WITH_PARAMS) {
           let elementToMove = handleElement({
             proxy,
             query,
