@@ -78,7 +78,7 @@ createArticleMutation({ // your mutation
 ```
 <hr />
 
-Example: Remove an Article
+Example: **Remove an Article**
 
 The following block of code:
 - removes an article with a specific id from the getArticles queries that contain the `published: true` variable
@@ -144,7 +144,44 @@ query getItems(
 
 ### Advanced Usage
 
-Example: Match any query
+**@client** directive: remote queries with mixed local state.
+
+In case you have queries like this one:
+```
+const GET_TODO = gql`
+  query todos {
+    todos {
+      id
+      type
+      local @client
+    }
+  }
+`;
+```
+
+It's your duty to extend the mutation results with the local state fields that are going to be missing from the response:
+
+```
+update: (proxy, { data: { addTodo = {} } }) => {
+              // your mutation response
+              const mutationResult = addTodo; // mutation result to pass into the updater
+              const updates = ApolloCacheUpdater({
+                proxy, // apollo proxy
+                queriesToUpdate: [GET_TODO], // queries you want to automatically update
+                searchVariables: {},
+                mutationResult: {
+                  ...mutationResult,
+                  local: client.localState.resolvers[
+                    mutationResult.__typename
+                  ].local(mutationResult)
+                }
+              });
+              if (updates) console.log(`Todo added`); // if no errors
+            }
+```
+Check this fully working example [here](https://codesandbox.io/s/apollo-mutations-m5fx0)
+
+Example: **Match any query**
 
 If you need to go through all matching query names ignoring any variables you should use the `ANY` operator. This does not work with the `MOVE` operation.
 
@@ -169,7 +206,7 @@ removeArticleMutation({ // your mutation
 })
 ```
 
-Example: Move an Article
+Example: **Move an Article**
 
 The following block of code:
 - removes an article from getArticles queries that contain the `published: true` variable and adds it to getArticles queries that contain the `published: false` variables
@@ -199,7 +236,7 @@ setArticleStatus({
 })
 ```
 
-Complete configuration object
+**Complete configuration object**
 ```js
 {
     proxy, // mandatory
@@ -246,7 +283,7 @@ Pass a custom action for the query `articles`
         type: 'ADD',
         add: ({ query, type, data, variables }) => {
             if (query === 'articles') {
-                return [mutationResult, ...data];
+                return [mutationResult, ...data]; // if you have mixed queries you need to extend the mutationResults with the missing local fields here too
             }
         }
     }
