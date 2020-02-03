@@ -197,6 +197,7 @@ export default ({
   const apolloQueries = queriesToUpdate.map(query => {
     // extract the name of the query
     const bodyString = JSON.stringify(query.loc.source.body)
+      .replace(/.\n*@client[^ ]+/g, '')
       .replace(/\\n/g, '')
       .replace(/ /g, '');
     const [queryName, queryType] = extractQueryNameAndType(bodyString);
