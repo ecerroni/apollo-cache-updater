@@ -88,7 +88,7 @@ removeArticleMutation({ // your mutation
     variables: {
         id: article.id // your mutation vars
     },
-    update: (proxy }) => {
+    update: (proxy) => {
         const updates = ApolloCacheUpdater({
             proxy, // mandatory
             queriesToUpdate: [getArticles, articlesCount], // queries you want to automatically update
